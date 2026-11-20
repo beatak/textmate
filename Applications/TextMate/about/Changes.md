@@ -2,6 +2,10 @@ Title: Release Notes
 
 # Changes
 
+## 2026-11-20 (v2.0.23.1)
+
+* Writing Tools (Proofread, Rewrite, …) are available again in the text view’s context menu and in the Edit menu on macOS 27.
+
 ## 2021-04-16 (v2.0.22)
 
 * A few more tweaks to improve things on macOS 11 including dropping use of floating header rows in file browser (SCM Status) and search results, as these appear to cause problems on Big Sur.

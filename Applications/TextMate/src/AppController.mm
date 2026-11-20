@@ -414,6 +414,17 @@ BOOL HasDocumentWindow (NSArray* windows)
 	};
 
 	NSMenu* menu = MBCreateMenu(items, [[OakMainMenu alloc] initWithTitle:@"AMainMenu"]);
+
+	if(@available(macos 15.2, *))
+	{
+		if(NSMenu* editMenu = [menu itemWithTitle:@"Edit"].submenu)
+		{
+			[editMenu addItem:[NSMenuItem separatorItem]];
+			for(NSMenuItem* item in NSMenuItem.writingToolsItems)
+				[editMenu addItem:item];
+		}
+	}
+
 	bundlesMenu.delegate    = self;
 	themesMenu.delegate     = self;
 	spellingMenu.delegate   = self;

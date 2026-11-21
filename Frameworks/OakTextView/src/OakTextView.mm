@@ -2090,6 +2090,20 @@ static void update_menu_key_equivalents (NSMenu* menu, std::multimap<std::string
 }
 
 // ======================
+// = Writing Tools      =
+// ======================
+
+// AppKit only implements showWritingTools: on NSTextView and NSApplication.
+// Handling it here makes OakTextView the menu item’s target (so we decide
+// when it is enabled) and then hands off to NSApplication, which drives
+// Writing Tools through our NSServicesMenuRequestor methods above.
+- (void)showWritingTools:(id)sender
+{
+	if(@available(macos 15.2, *))
+		[NSApp showWritingTools:sender];
+}
+
+// ======================
 
 - (void)handleKeyBindingAction:(plist::any_t const&)anAction
 {
@@ -2471,6 +2485,16 @@ static void update_menu_key_equivalents (NSMenu* menu, std::multimap<std::string
 		if(item.title)
 				[menu addItemWithTitle:item.title action:item.action keyEquivalent:@""];
 		else	[menu addItem:[NSMenuItem separatorItem]];
+	}
+
+	// Writing Tools (Proofread, Rewrite, …) work via our NSServicesMenuRequestor methods.
+	// Add the items explicitly and disable AppKit’s automatic insertion to avoid duplicates.
+	if(@available(macos 15.2, *))
+	{
+		menu.automaticallyInsertsWritingToolsItems = NO;
+		[menu addItem:[NSMenuItem separatorItem]];
+		for(NSMenuItem* item in NSMenuItem.writingToolsItems)
+			[menu addItem:item];
 	}
 	return menu;
 }
@@ -3088,6 +3112,14 @@ static char const* kOakMenuItemTitle = "OakMenuItemTitle";
 		[aMenuItem setDynamicTitle:@"Cut"];
 	else if([aMenuItem action] == @selector(copy:))
 		[aMenuItem setDynamicTitle:@"Copy"];
+
+	if(@available(macos 15.2, *))
+	{
+		// NSApplication validates Writing Tools items against the key window, which is
+		// the menu’s own window while a context menu is open (macOS 27), so decide here.
+		if([aMenuItem action] == @selector(showWritingTools:))
+			return [self hasSelection] && !macroRecordingArray;
+	}
 
 	static auto const RequiresSelection = new std::set<SEL>{ @selector(cut:), @selector(copy:), @selector(delete:), @selector(copySelectionToFindPboard:) };
 	if(RequiresSelection->find([aMenuItem action]) != RequiresSelection->end())
